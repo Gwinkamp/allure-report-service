@@ -1,0 +1,4 @@
+allure:
+  script_path: ${ALLURE_SCRIPT_PATH}
+  build_path: ${ALLURE_BUILD_PATH}
+  results_path: ${ALLURE_RESULTS_PATH}
