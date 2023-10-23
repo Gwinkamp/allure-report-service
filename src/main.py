@@ -1,6 +1,7 @@
 import config
 from api import router
 from container import Container
+from multiprocessing import Process
 
 
 def main():
@@ -14,6 +15,7 @@ def main():
     api = container.api()
     api.include_router(router)
 
+    container.startup()
     container.run_api()
 
 

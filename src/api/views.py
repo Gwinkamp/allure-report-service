@@ -6,7 +6,7 @@ from fastapi import status
 from fastapi.responses import Response, RedirectResponse
 
 from container import Container
-from servicers import AllureReport, ResultsUnpacker
+from services import AllureReport, ResultsUnpacker, ResultsBackuper
 from .router import AllureReceiverApiRouter
 
 router = AllureReceiverApiRouter()
@@ -23,13 +23,18 @@ async def upload_results(
         background_tasks: BackgroundTasks,
         file: Annotated[bytes, File(description='Файл архива с результатами тестов в формате AllureReport')],
         trigger_build: Annotated[bool, Form(description='Инициировать сборку отчета после загрузки')] = False,
+        allure_report: AllureReport = Depends(Provide[Container.allure_report]),
         unpacker: ResultsUnpacker = Depends(Provide[Container.results_unpacker]),
-        allure_report: AllureReport = Depends(Provide[Container.allure_report])
+        backuper: ResultsBackuper = Depends(Provide[Container.results_backuper]),
+        backup_to_remote_storage: bool = Depends(Provide[Container.config.backup_to_remote_storage])
 ):
     unpacker.execute(file)
 
     if trigger_build:
         background_tasks.add_task(allure_report.build)
+
+    if backup_to_remote_storage:
+        backuper.backup(file)
 
     return Response(
         status_code=status.HTTP_200_OK,
@@ -41,9 +46,10 @@ async def upload_results(
 @inject
 async def build_report(
         background_tasks: BackgroundTasks,
+        collect_history: Annotated[bool, Form(description='Сохранить результаты тестов в историю запусков')] = True,
         allure_report: AllureReport = Depends(Provide[Container.allure_report])
 ):
-    background_tasks.add_task(allure_report.build)
+    background_tasks.add_task(allure_report.build, collect_history=collect_history)
     return Response(
         status_code=status.HTTP_200_OK,
         content='Команда на сборку нового отчета принята. Отчет будет сгенерирован в фоновом режиме'

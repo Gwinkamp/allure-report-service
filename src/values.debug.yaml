@@ -4,3 +4,4 @@ api_port: 1050
 ui_host: 127.0.0.1
 ui_port: 1051
 db_connection_string: postgresext://postgres:postgres@localhost:5432/allure_history
+backup_to_remote_storage: false

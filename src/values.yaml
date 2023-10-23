@@ -2,3 +2,11 @@ allure:
   script_path: ${ALLURE_SCRIPT_PATH:allure}
   build_path: ${ALLURE_BUILD_PATH:./allure/report}
   results_path: ${ALLURE_RESULTS_PATH:./allure/results}
+minio:
+  endpoint: ${MINIO_ENDPOINT}
+  access_key: ${MINIO_ACCESS_KEY}
+  secret_key: ${MINIO_SECRET_KEY}
+  region: ${MINIO_REGION}
+  secure: true
+  bucket_name: ${MINIO_BUCKET_NAME}
+  results_path: ${MINIO_RESULTS_PATH}

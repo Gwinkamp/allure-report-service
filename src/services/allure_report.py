@@ -1,4 +1,6 @@
 import logging
+import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -77,7 +79,7 @@ class AllureReport:
             f'STDERR: {self._process.stderr.read().decode() or "<None>"}'
         )
 
-    def build(self):
+    def build(self, collect_history: bool = True):
         self._logger.info('Выполняется сборка нового отчета...')
 
         if self._build_path.exists():
@@ -100,5 +102,12 @@ class AllureReport:
             )
             return
 
-        self._collectors.collect_all()
+        if collect_history:
+            self._collectors.collect_all()
+
+        self._clear_results()
         logging.info('Сборка нового отчета прошла успешно')
+
+    def _clear_results(self):
+        shutil.rmtree(self._results_path)
+        os.makedirs(self._results_path)

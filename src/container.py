@@ -1,5 +1,5 @@
-import os
 import logging.config
+import os
 
 import rich
 import uvicorn
@@ -7,8 +7,9 @@ from dependency_injector import containers, providers
 from fastapi import FastAPI
 
 from config import ROOT_DIR
-from servicers import AllureReport, ResultsUnpacker
 from data.entities import init_database
+from services import AllureReport, ResultsUnpacker, MinioStorage, ResultsBackuper
+from startup import startup
 
 
 class Container(containers.DeclarativeContainer):
@@ -63,6 +64,31 @@ class Container(containers.DeclarativeContainer):
     results_unpacker = providers.Singleton(
         ResultsUnpacker,
         results_path=config.allure.results_path
+    )
+
+    minio = providers.Singleton(
+        MinioStorage,
+        endpoint=config.minio.endpoint,
+        access_key=config.minio.access_key,
+        secret_key=config.minio.secret_key,
+        region=config.minio.region,
+        secure=config.minio.secure,
+        bucket_name=config.minio.bucket_name,
+        results_path=config.minio.results_path
+    )
+
+    results_backuper = providers.Singleton(
+        ResultsBackuper,
+        storage=minio,
+        unpacker=results_unpacker
+    )
+
+    startup = providers.Callable(
+        startup,
+        allure_report=allure_report,
+        backuper=results_backuper,
+        results_path=config.allure.results_path,
+        backup_to_remote_storage=config.backup_to_remote_storage
     )
 
     run_api = providers.Callable(

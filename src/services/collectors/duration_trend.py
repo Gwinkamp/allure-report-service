@@ -32,7 +32,7 @@ class DurationTrendCollector:
         content = [
             {
                 'data': {
-                    'duration': int(t.duration.total_seconds() * 100)
+                    'duration': int(t.duration.total_seconds() * 1000)
                 }
             } for t in trend
         ]
