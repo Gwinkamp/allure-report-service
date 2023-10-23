@@ -1,79 +1,110 @@
 import json
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Any
 from uuid import UUID
 
 from linq import Query
 
-import config
 from data.entities import History, HistoryItem
 
 
 class HistoryCollector:
+    """Сборщик истории запуска автотестов"""
 
-    def __init__(self, build_path: Optional[str] = None):
-        self._build_path = Path(build_path) if build_path else config.ROOT_DIR / 'report'
+    def __init__(self, base_path: Path, results_path: Path):
+        self.source_path = base_path / 'history' / 'history.json'
+        self.results_path = results_path / 'history' / 'history.json'
 
-    def collect_history(self):
-        ...
-
-    def _collect_from_history_file(self):
-        with open(self._build_path / 'history' / 'history.json', 'r') as file:
+    def collect(self):
+        """Сохранить историю автотестов"""
+        with open(self.source_path, 'r') as file:
             file_content = json.load(file)
 
-        histories = list(History.select().join(HistoryItem))
+        histories = list(History.select())
 
-        for key, current in file_content.items():
-            history = Query(histories).first_or_none(lambda h: h.id == UUID(key))
-
-            # если уже есть в БД
+        for key, history_data in file_content.items():
+            history_id = UUID(key)
+            history = Query(histories).first_or_none(lambda h: h.id == history_id)
             if history:
-                current_items = Query(history.items).select(lambda i: i.uid).to_list()
-                for item in current['items']:
-                    if not item['uid'] in current_items:
-                        HistoryItem.create(
-                            uid=item['uid'],
-                            history=history,
-                            status=item['status'],
-                            time_start=item['time']['start'],
-                            time_stop=item['time']['stop'],
-                            duration=item['time']['duration'],
-                            report_url=item.get('reportUrl', None),
-                            status_details=item.get('statusDetails', None)
-                        )
-                history.statistic = json.dumps(current['statistic'])
-                history.save()
-            # новая история
+                self._update_current_history(history, history_data)
             else:
-                new_history = History.create(
-                    id=UUID(key),
-                    statistic=json.dumps(current['statistic'])
-                )
-                for item in current['items']:
-                    HistoryItem.create(
-                        uid=item['uid'],
-                        history=new_history,
-                        status=item['status'],
-                        time_start=item['time']['start'],
-                        time_stop=item['time']['stop'],
-                        duration=item['time']['duration'],
-                        report_url=item.get('reportUrl', None),
-                        status_details=item.get('statusDetails', None)
-                    )
+                self._create_new_history(history_id, history_data)
 
-        # for history in History.select().join(HistoryItem):
-        #     current = file_content.get(history.id.hex, None)
-        #     if current:
-        #         current_items = Query(history.items).select(lambda i: i.uid).to_list()
-        #         for item in current['items']:
-        #             if not item['uid'] in current_items:
-        #                 HistoryItem.create(
-        #                     uid=item['uid'],
-        #                     history=history,
-        #                     status=item['status'],
-        #                     time_start=item['time']['start'],
-        #                     time_stop=item['time']['stop'],
-        #                     duration=item['time']['duration'],
-        #                     report_url=item.get('reportUrl', None),
-        #                     status_details=item.get('statusDetails', None)
-        #                 )
+    def extract(self):
+        """Извлечь историю автотестов"""
+        histories = History.select().join(HistoryItem)
+
+        content = dict()
+        for history in histories:
+            content[history.id.hex] = self._create_dict_from_history(history)
+
+        with open(self.results_path, 'w') as file:
+            json.dump(content, file)
+
+    def _update_current_history(self, history: History, data: Dict[str, Any]):
+        """Обновить историю автотеста
+
+        :param history: текущая история автотеста
+        :param data: новые данные истории автотеста
+        """
+        current_items = Query(history.items).select(lambda i: i.uid).to_list()
+        for item in data['items']:
+            if item['uid'] in current_items:
+                continue
+
+            self._create_history_item_from_dict(history, item)
+
+        history.statistic = data['statistic']
+        history.save()
+
+    def _create_new_history(self, history_id: UUID, data: Dict[str, Any]):
+        """Создать историю автотеста
+
+        :param history_id: идентификатор автотеста
+        :param data: данные истории запуска
+        """
+        history = History.create(
+            id=history_id,
+            statistic=data['statistic']
+        )
+        for item in data['items']:
+            self._create_history_item_from_dict(history, item)
+
+    @staticmethod
+    def _create_history_item_from_dict(history: History, data: Dict[str, Any]):
+        return HistoryItem.create(
+            uid=data['uid'],
+            history=history,
+            status=data['status'],
+            time_start=datetime.fromtimestamp(data['time']['start'] / 1000),
+            time_stop=datetime.fromtimestamp(data['time']['stop'] / 1000),
+            duration=timedelta(seconds=data['time']['duration']),
+            report_url=data.get('reportUrl', None),
+            status_details=data.get('statusDetails', None)
+        )
+
+    @staticmethod
+    def _create_dict_from_history(history: History):
+        history_items = (
+            HistoryItem
+            .select()
+            .where(HistoryItem.history == history)
+            .order_by(HistoryItem.created.desc())  # type: ignore
+        )
+        return {
+            'statistic': history.statistic,
+            'items': [
+                {
+                    'uid': item.uid,
+                    'status': item.status,
+                    'statusDetails': item.status_details,
+                    'reportUrl': item.report_url,
+                    'time': {
+                        'start': int(item.time_start.timestamp()) * 1000,
+                        'stop': int(item.time_stop.timestamp()) * 1000,
+                        'duration': int(item.duration.total_seconds()) * 1000
+                    }
+                } for item in history_items
+            ]
+        }

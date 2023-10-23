@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 import config
+from .collectors import Collectors
 
 
 class AllureReport:
@@ -23,6 +24,8 @@ class AllureReport:
         self._results_path = Path(results_path) if results_path else config.ROOT_DIR / 'results'
         self._build_path = Path(build_path) if build_path else config.ROOT_DIR / 'report'
         self._allure_path = Path(allure_path) if allure_path else 'allure'
+
+        self._collectors = Collectors(self._build_path, self._results_path)
 
         self._process: subprocess.Popen = ...
         self._is_running = False
@@ -63,7 +66,7 @@ class AllureReport:
             args=self._open_command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            shell=False
+            shell=True
         )
 
         self._is_running = True
@@ -78,13 +81,17 @@ class AllureReport:
 
     def build(self):
         self._logger.info('Выполняется сборка нового отчета...')
+
+        if self._build_path.exists():
+            self._collectors.extract_all()
+
         self._logger.debug(f'Выполнение команды: "{self._build_command}"')
 
         process = subprocess.run(
             args=self._build_command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            shell=False
+            shell=True
         )
 
         if process.returncode != 0:
@@ -93,15 +100,17 @@ class AllureReport:
                 f'STDOUT: {self._process.stdout.read().decode() or "<None>"} '
                 f'STDERR: {self._process.stderr.read().decode() or "<None>"}'
             )
-        else:
-            logging.info('Сборка нового отчета прошла успешно')
+            return
+
+        self._collectors.collect_all()
+        logging.info('Сборка нового отчета прошла успешно')
 
     def terminate(self):
         if not self.is_running:
             self._logger.warning(f'Команда остановки Allure Report проигнорирована, так как процесс и так не запущен')
             return
 
-        self._process.terminate()
+        self._process.kill()
 
         self._is_running = False
         self._logger.info('Процесс Allure Report был остановлен')

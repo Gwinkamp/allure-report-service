@@ -31,7 +31,7 @@ async def build_report(
     background_tasks.add_task(allure_report.build)
     return Response(
         status_code=status.HTTP_200_OK,
-        content='Команда на сборку нового отчеа принята. Отчет будет сгенерирован в фоновом режиме'
+        content='Команда на сборку нового отчета принята. Отчет будет сгенерирован в фоновом режиме'
     )
 
 

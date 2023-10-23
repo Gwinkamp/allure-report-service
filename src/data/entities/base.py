@@ -4,5 +4,6 @@ db_proxy = peewee.DatabaseProxy()
 
 
 class BaseEntity(peewee.Model):
-    class Config:
+    class Meta:
         database = db_proxy
+        legacy_table_names = False

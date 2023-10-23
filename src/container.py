@@ -7,6 +7,7 @@ from fastapi import FastAPI
 
 from config import ROOT_DIR
 from servicers import AllureReport
+from data.entities import init_database
 
 
 class Container(containers.DeclarativeContainer):
@@ -20,6 +21,11 @@ class Container(containers.DeclarativeContainer):
     reconfigure_logging = providers.Resource(
         rich.reconfigure,
         width=256
+    )
+
+    init_database = providers.Resource(
+        init_database,
+        db_connection_string=config.db_connection_string
     )
 
     api = providers.Singleton(

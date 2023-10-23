@@ -14,7 +14,7 @@ class History(BaseEntity):
 
 class HistoryItem(BaseEntity):
     uid: str = peewee.TextField(primary_key=True)
-    history = peewee.ForeignKeyField(History, column_name='history_id', backref='items')
+    history = peewee.ForeignKeyField(History, column_name='history_id', backref='items', on_delete='cascade')
     report_url: str = peewee.TextField(null=True)
     status: str = peewee.TextField()
     status_details: str = peewee.TextField(null=True)
