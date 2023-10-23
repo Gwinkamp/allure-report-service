@@ -1,4 +1,4 @@
 allure:
   script_path: ${ALLURE_SCRIPT_PATH:allure}
-  build_path: ${ALLURE_BUILD_PATH:$HOME/allure/report}
-  results_path: ${ALLURE_RESULTS_PATH:$HOME/allure/results}
+  build_path: ${ALLURE_BUILD_PATH:./allure/report}
+  results_path: ${ALLURE_RESULTS_PATH:./allure/results}

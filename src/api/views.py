@@ -1,10 +1,12 @@
+from typing import Annotated
+
 from dependency_injector.wiring import inject, Provide
-from fastapi import UploadFile, Form, Depends, BackgroundTasks
+from fastapi import File, Form, Depends, BackgroundTasks
 from fastapi import status
 from fastapi.responses import Response, RedirectResponse
 
 from container import Container
-from servicers import AllureReport
+from servicers import AllureReport, ResultsUnpacker
 from .router import AllureReceiverApiRouter
 
 router = AllureReceiverApiRouter()
@@ -16,10 +18,23 @@ async def root():
 
 
 @router.upload_results
+@inject
 async def upload_results(
-        file: UploadFile = Form(description='Файл архива с результатами тестов в формате AllureReport')
+        background_tasks: BackgroundTasks,
+        file: Annotated[bytes, File(description='Файл архива с результатами тестов в формате AllureReport')],
+        trigger_build: Annotated[bool, Form(description='Инициировать сборку отчета после загрузки')] = False,
+        unpacker: ResultsUnpacker = Depends(Provide[Container.results_unpacker]),
+        allure_report: AllureReport = Depends(Provide[Container.allure_report])
 ):
-    return Response(status_code=status.HTTP_200_OK, content=file.filename)
+    unpacker.execute(file)
+
+    if trigger_build:
+        background_tasks.add_task(allure_report.build)
+
+    return Response(
+        status_code=status.HTTP_200_OK,
+        content='Результаты успешно сохранены'
+    )
 
 
 @router.build_report

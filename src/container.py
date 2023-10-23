@@ -1,3 +1,4 @@
+import os
 import logging.config
 
 import rich
@@ -6,7 +7,7 @@ from dependency_injector import containers, providers
 from fastapi import FastAPI
 
 from config import ROOT_DIR
-from servicers import AllureReport
+from servicers import AllureReport, ResultsUnpacker
 from data.entities import init_database
 
 
@@ -28,6 +29,18 @@ class Container(containers.DeclarativeContainer):
         db_connection_string=config.db_connection_string
     )
 
+    make_build_path = providers.Resource(
+        os.makedirs,
+        name=config.allure.build_path,
+        exist_ok=True,
+    )
+
+    make_results_path = providers.Resource(
+        os.makedirs,
+        name=config.allure.results_path,
+        exist_ok=True,
+    )
+
     api = providers.Singleton(
         FastAPI,
         debug=config.debug,
@@ -44,6 +57,11 @@ class Container(containers.DeclarativeContainer):
         port=config.ui_port,
         allure=config.allure.script_path,
         build_path=config.allure.build_path,
+        results_path=config.allure.results_path
+    )
+
+    results_unpacker = providers.Singleton(
+        ResultsUnpacker,
         results_path=config.allure.results_path
     )
 

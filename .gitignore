@@ -160,5 +160,4 @@ cython_debug/
 .idea/
 
 # temp files
-src/report
-src/results
+src/allure

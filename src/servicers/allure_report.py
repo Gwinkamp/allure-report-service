@@ -1,4 +1,3 @@
-import os
 import logging
 import subprocess
 from pathlib import Path
@@ -21,14 +20,8 @@ class AllureReport:
         self.port = port
 
         self._allure = allure
-
         self._results_path = Path(results_path)
-        if not self._results_path.exists():
-            os.makedirs(self._results_path)
-
         self._build_path = Path(build_path)
-        if not self._build_path.exists():
-            os.makedirs(self._build_path)
 
         self._collectors = Collectors(self._build_path, self._results_path)
 
