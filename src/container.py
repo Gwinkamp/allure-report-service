@@ -42,8 +42,9 @@ class Container(containers.DeclarativeContainer):
         AllureReport,
         host=config.ui_host,
         port=config.ui_port,
+        allure=config.allure.script_path,
         build_path=config.allure.build_path,
-        allure_path=config.allure.script_path
+        results_path=config.allure.results_path
     )
 
     run_api = providers.Callable(

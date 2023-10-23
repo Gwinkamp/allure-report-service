@@ -1,9 +1,8 @@
+import os
 import logging
 import subprocess
 from pathlib import Path
-from typing import Optional
 
-import config
 from .collectors import Collectors
 
 
@@ -14,16 +13,22 @@ class AllureReport:
             self,
             host: str,
             port: int,
-            results_path: Optional[str] = None,
-            build_path: Optional[str] = None,
-            allure_path: Optional[str] = None,
+            allure: str = None,
+            results_path: str = None,
+            build_path: str = None
     ):
         self.host = host
         self.port = port
 
-        self._results_path = Path(results_path) if results_path else config.ROOT_DIR / 'results'
-        self._build_path = Path(build_path) if build_path else config.ROOT_DIR / 'report'
-        self._allure_path = Path(allure_path) if allure_path else 'allure'
+        self._allure = allure
+
+        self._results_path = Path(results_path)
+        if not self._results_path.exists():
+            os.makedirs(self._results_path)
+
+        self._build_path = Path(build_path)
+        if not self._build_path.exists():
+            os.makedirs(self._build_path)
 
         self._collectors = Collectors(self._build_path, self._results_path)
 
@@ -35,7 +40,7 @@ class AllureReport:
     @property
     def _open_command(self):
         return (
-            f'{self._allure_path} open '
+            f'{self._allure} open '
             f'-h {self.host} '
             f'-p {self.port} '
             f'{self._build_path}'
@@ -44,7 +49,7 @@ class AllureReport:
     @property
     def _build_command(self):
         return (
-            f'{self._allure_path} generate '
+            f'{self._allure} generate '
             f'{self._results_path} '
             f'-o {self._build_path} '
             '--clean'
