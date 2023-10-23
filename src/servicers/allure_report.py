@@ -104,13 +104,3 @@ class AllureReport:
 
         self._collectors.collect_all()
         logging.info('Сборка нового отчета прошла успешно')
-
-    def terminate(self):
-        if not self.is_running:
-            self._logger.warning(f'Команда остановки Allure Report проигнорирована, так как процесс и так не запущен')
-            return
-
-        self._process.kill()
-
-        self._is_running = False
-        self._logger.info('Процесс Allure Report был остановлен')

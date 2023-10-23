@@ -46,10 +46,3 @@ async def start_ui(
         status_code=status.HTTP_200_OK,
         content='Команда на запуск принята. UI AllureReport будет запущен в фоновом режиме'
     )
-
-
-@router.terminate_ui
-@inject
-async def terminate_ui(allure_report: AllureReport = Depends(Provide[Container.allure_report])):
-    allure_report.terminate()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)

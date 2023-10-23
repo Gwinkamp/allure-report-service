@@ -24,7 +24,7 @@ class AllureReceiverApiRouter(APIRouter):
             '/report/build',
             response_model=str,
             tags=['report'],
-            summary='Построить отчет о результатах тестирвоания'
+            summary='Построить отчет о результатах тестирования'
         )
 
     @cached_property
@@ -34,13 +34,4 @@ class AllureReceiverApiRouter(APIRouter):
             response_model=str,
             tags=['report'],
             summary='Запустить UI AllureReport'
-        )
-
-    @cached_property
-    def terminate_ui(self):
-        return self.post(
-            '/report/terminate',
-            response_model=str,
-            tags=['report'],
-            summary='Остановить UI AllureReport'
         )
