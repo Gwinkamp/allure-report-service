@@ -28,7 +28,7 @@ class ResultsUnpacker:
         try:
             return ZipFile(BytesIO(zipped_data), 'r')
         except BadZipFile:
-            self._logger.info(f'Запрос отклонен. Причина: "{self._INVALID_ARCHIVE_MSG}"')
+            self._logger.warning(f'Запрос отклонен. Причина: "{self._INVALID_ARCHIVE_MSG}"')
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=self._INVALID_ARCHIVE_MSG
@@ -38,7 +38,7 @@ class ResultsUnpacker:
         if zip_file.testzip() is None:
             return
 
-        self._logger.info(f'Запрос отклонен. Причина: "{self._BROKEN_ARCHIVE_MSG}"')
+        self._logger.warning(f'Запрос отклонен. Причина: "{self._BROKEN_ARCHIVE_MSG}"')
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=self._BROKEN_ARCHIVE_MSG
