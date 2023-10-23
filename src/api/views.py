@@ -24,22 +24,23 @@ async def upload_results(
 
 @router.build_report
 @inject
-async def build_report():
-    return Response(status_code=status.HTTP_200_OK, content='Успех')
+async def build_report(
+        background_tasks: BackgroundTasks,
+        allure_report: AllureReport = Depends(Provide[Container.allure_report])
+):
+    background_tasks.add_task(allure_report.build)
+    return Response(
+        status_code=status.HTTP_200_OK,
+        content='Команда на сборку нового отчеа принята. Отчет будет сгенерирован в фоновом режиме'
+    )
 
 
 @router.start_ui
 @inject
 async def start_ui(
         background_tasks: BackgroundTasks,
-        allure_report: AllureReport = Depends(Provide[Container.allure_report]),
+        allure_report: AllureReport = Depends(Provide[Container.allure_report])
 ):
-    if allure_report.is_running:
-        return Response(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content='UI AllureReport и так запущен'
-        )
-
     background_tasks.add_task(allure_report.run)
     return Response(
         status_code=status.HTTP_200_OK,
@@ -50,14 +51,5 @@ async def start_ui(
 @router.terminate_ui
 @inject
 async def terminate_ui(allure_report: AllureReport = Depends(Provide[Container.allure_report])):
-    if not allure_report.is_running:
-        return Response(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content='UI AllureReport не запущен'
-        )
-
     allure_report.terminate()
-    return Response(
-        status_code=status.HTTP_200_OK,
-        content='UI AllureReport остановлен'
-    )
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

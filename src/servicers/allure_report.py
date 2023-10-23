@@ -1,6 +1,4 @@
-import os
 import logging
-import signal
 import subprocess
 from pathlib import Path
 from typing import Optional
@@ -15,13 +13,15 @@ class AllureReport:
             self,
             host: str,
             port: int,
+            results_path: Optional[str] = None,
             build_path: Optional[str] = None,
             allure_path: Optional[str] = None,
     ):
         self.host = host
         self.port = port
 
-        self._build_path = Path(build_path or config.ROOT_DIR / 'report')
+        self._results_path = Path(results_path) if results_path else config.ROOT_DIR / 'results'
+        self._build_path = Path(build_path) if build_path else config.ROOT_DIR / 'report'
         self._allure_path = Path(allure_path) if allure_path else 'allure'
 
         self._process: subprocess.Popen = ...
@@ -30,7 +30,7 @@ class AllureReport:
         self._logger = logging.getLogger(self.__class__.__name__)
 
     @property
-    def command(self):
+    def _open_command(self):
         return (
             f'{self._allure_path} open '
             f'-h {self.host} '
@@ -39,14 +39,28 @@ class AllureReport:
         )
 
     @property
+    def _build_command(self):
+        return (
+            f'{self._allure_path} generate '
+            f'{self._results_path} '
+            f'-o {self._build_path} '
+            '--clean'
+        )
+
+    @property
     def is_running(self):
         return self._is_running
 
     def run(self):
-        self._logger.info(f'Выполнение команды: "{self.command}"')
+        if self.is_running:
+            self._logger.warning('Команда запуск UI Allure Report проигнорирована, так как UI уже запущен')
+            return
+
+        self._logger.info('Выполняется запуск UI Allure Report')
+        self._logger.debug(f'Выполнение команды: "{self._open_command}"')
 
         self._process = subprocess.Popen(
-            args=self.command,
+            args=self._open_command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             shell=False
@@ -61,6 +75,26 @@ class AllureReport:
             f'STDOUT: {self._process.stdout.read().decode() or "<None>"} '
             f'STDERR: {self._process.stderr.read().decode() or "<None>"}'
         )
+
+    def build(self):
+        self._logger.info('Выполняется сборка нового отчета...')
+        self._logger.debug(f'Выполнение команды: "{self._build_command}"')
+
+        process = subprocess.run(
+            args=self._build_command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=False
+        )
+
+        if process.returncode != 0:
+            logging.error(
+                'Сборка нового отчета завершилась с ошибкой. '
+                f'STDOUT: {self._process.stdout.read().decode() or "<None>"} '
+                f'STDERR: {self._process.stderr.read().decode() or "<None>"}'
+            )
+        else:
+            logging.info('Сборка нового отчета прошла успешно')
 
     def terminate(self):
         if not self.is_running:

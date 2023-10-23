@@ -12,7 +12,7 @@ class AllureReceiverApiRouter(APIRouter):
     @cached_property
     def upload_results(self):
         return self.post(
-            'results/upload',
+            '/results/upload',
             response_model=str,
             tags=['results'],
             summary='Загрузить результаты тестирования'
@@ -21,7 +21,7 @@ class AllureReceiverApiRouter(APIRouter):
     @cached_property
     def build_report(self):
         return self.put(
-            'report/build',
+            '/report/build',
             response_model=str,
             tags=['report'],
             summary='Построить отчет о результатах тестирвоания'
