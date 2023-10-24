@@ -1,0 +1,4 @@
+src/.env
+src/allure
+venv
+.mypy_cache
