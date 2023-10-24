@@ -1,7 +1,6 @@
 import config
 from api import router
 from container import Container
-from multiprocessing import Process
 
 
 def main():

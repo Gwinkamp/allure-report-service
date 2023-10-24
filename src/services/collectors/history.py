@@ -48,7 +48,7 @@ class HistoryCollector:
         :param history: текущая история автотеста
         :param data: новые данные истории автотеста
         """
-        current_items = Query(history.items).select(lambda i: i.uid).to_list()
+        current_items = Query(history.items).select(lambda i: i.uid).to_list()  # type: ignore
         for item in data['items']:
             if item['uid'] in current_items:
                 continue

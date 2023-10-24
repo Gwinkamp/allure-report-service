@@ -14,9 +14,9 @@ class AllureReport:
             self,
             host: str,
             port: int,
-            allure: str = None,
-            results_path: str = None,
-            build_path: str = None
+            allure: str,
+            results_path: str,
+            build_path: str
     ):
         self.host = host
         self.port = port
@@ -25,12 +25,9 @@ class AllureReport:
         self._results_path = Path(results_path)
         self._build_path = Path(build_path)
 
-        self._collectors = Collectors(self._build_path, self._results_path)
-
-        self._process: subprocess.Popen = ...
         self._is_running = False
-
         self._logger = logging.getLogger(self.__class__.__name__)
+        self._collectors = Collectors(self._build_path, self._results_path)
 
     @property
     def _open_command(self):
@@ -62,7 +59,7 @@ class AllureReport:
         self._logger.info('Выполняется запуск UI Allure Report')
         self._logger.debug(f'Выполнение команды: "{self._open_command}"')
 
-        self._process = subprocess.Popen(
+        process = subprocess.Popen(
             args=self._open_command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -70,13 +67,13 @@ class AllureReport:
         )
 
         self._is_running = True
-        self._process.wait()
+        process.wait()
 
         self._is_running = False
         self._logger.critical(
-            f'Allure Report завершил свою работу с кодом "{self._process.returncode}". '
-            f'STDOUT: {self._process.stdout.read().decode() or "<None>"} '
-            f'STDERR: {self._process.stderr.read().decode() or "<None>"}'
+            f'Allure Report завершил свою работу с кодом "{process.returncode}". '
+            f'STDOUT: {process.stdout.read().decode() or "<None>" if process.stdout else "<None>"} '
+            f'STDERR: {process.stderr.read().decode() or "<None>" if process.stderr else "<None>"}'
         )
 
     def build(self, collect_history: bool = True):
@@ -97,8 +94,8 @@ class AllureReport:
         if process.returncode != 0:
             logging.error(
                 'Сборка нового отчета завершилась с ошибкой. '
-                f'STDOUT: {self._process.stdout.read().decode() or "<None>"} '
-                f'STDERR: {self._process.stderr.read().decode() or "<None>"}'
+                f'STDOUT: {process.stdout.decode() or "<None>"} '
+                f'STDERR: {process.stderr.decode() or "<None>"}'
             )
             return
 
