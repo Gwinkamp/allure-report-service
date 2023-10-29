@@ -13,8 +13,8 @@ class HistoryCollector:
     """Сборщик истории запуска автотестов"""
 
     def __init__(self, base_path: Path, results_path: Path):
-        self.source_path = base_path / 'history' / 'history.json'
-        self.results_path = results_path / 'history' / 'history.json'
+        self.source_path = base_path / 'history.json'
+        self.results_path = results_path / 'history.json'
 
     def collect(self):
         """Сохранить историю автотестов"""
@@ -31,13 +31,13 @@ class HistoryCollector:
             else:
                 self._create_new_history(history_id, history_data)
 
-    def extract(self):
+    def extract(self, rebuild: bool = False):
         """Извлечь историю автотестов"""
         histories = History.select().join(HistoryItem)
 
         content = dict()
         for history in histories:
-            content[history.id.hex] = self._create_dict_from_history(history)
+            content[history.id.hex] = self._create_dict_from_history(history, rebuild)
 
         with open(self.results_path, 'w') as file:
             json.dump(content, file)
@@ -85,13 +85,18 @@ class HistoryCollector:
         )
 
     @staticmethod
-    def _create_dict_from_history(history: History):
-        history_items = (
+    def _create_dict_from_history(history: History, rebuild: bool = False):
+        history_items = list(
             HistoryItem
             .select()
             .where(HistoryItem.history == history)
             .order_by(HistoryItem.created.desc())  # type: ignore
         )
+
+        if rebuild:
+            history_items[0].delete_instance()
+            history_items = history_items[1:]
+
         return {
             'statistic': history.statistic,
             'items': [

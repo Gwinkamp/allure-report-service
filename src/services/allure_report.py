@@ -76,11 +76,11 @@ class AllureReport:
             f'STDERR: {process.stderr.read().decode() or "<None>" if process.stderr else "<None>"}'
         )
 
-    def build(self, collect_history: bool = True):
+    def build(self, collect_history: bool = True, rebuild: bool = False):
         self._logger.info('Выполняется сборка нового отчета...')
 
-        if self._build_path.exists():
-            self._collectors.extract_all()
+        if self._collectors.base_path.exists():
+            self._collectors.extract_all(rebuild)
 
         self._logger.debug(f'Выполнение команды: "{self._build_command}"')
 
@@ -102,9 +102,8 @@ class AllureReport:
         if collect_history:
             self._collectors.collect_all()
 
-        self._clear_results()
         logging.info('Сборка нового отчета прошла успешно')
 
-    def _clear_results(self):
+    def clear_results(self):
         shutil.rmtree(self._results_path)
         os.makedirs(self._results_path)

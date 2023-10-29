@@ -23,15 +23,23 @@ async def upload_results(
         background_tasks: BackgroundTasks,
         file: Annotated[bytes, File(description='Файл архива с результатами тестов в формате AllureReport')],
         trigger_build: Annotated[bool, Form(description='Инициировать сборку отчета после загрузки')] = False,
+        rebuild_existing_report: Annotated[bool, Form(description='Пересобрать текущий отчет')] = False,
         allure_report: AllureReport = Depends(Provide[Container.allure_report]),
         unpacker: ResultsUnpacker = Depends(Provide[Container.results_unpacker]),
         backuper: ResultsBackuper = Depends(Provide[Container.results_backuper]),
         backup_to_remote_storage: bool = Depends(Provide[Container.config.backup_to_remote_storage])
 ):
+    if not rebuild_existing_report:
+        allure_report.clear_results()
+
     unpacker.execute(file)
 
     if trigger_build:
-        background_tasks.add_task(allure_report.build)
+        background_tasks.add_task(
+            allure_report.build,
+            collect_history=True,
+            rebuild=rebuild_existing_report
+        )
 
     if backup_to_remote_storage:
         backuper.backup(file)
@@ -49,7 +57,11 @@ async def build_report(
         collect_history: Annotated[bool, Form(description='Сохранить результаты тестов в историю запусков')] = True,
         allure_report: AllureReport = Depends(Provide[Container.allure_report])
 ):
-    background_tasks.add_task(allure_report.build, collect_history=collect_history)
+    background_tasks.add_task(
+        allure_report.build,
+        collect_history=collect_history,
+        rebuild=False
+    )
     return Response(
         status_code=status.HTTP_200_OK,
         content='Команда на сборку нового отчета принята. Отчет будет сгенерирован в фоновом режиме'

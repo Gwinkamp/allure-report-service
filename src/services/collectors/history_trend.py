@@ -10,8 +10,8 @@ class HistoryTrendCollector:
     """Сборщик статистики длительности автотестов"""
 
     def __init__(self, base_path: Path, results_path: Path):
-        self.source_path = base_path / 'history' / 'history-trend.json'
-        self.results_path = results_path / 'history' / 'history-trend.json'
+        self.source_path = base_path / 'history-trend.json'
+        self.results_path = results_path / 'history-trend.json'
 
     def collect(self):
         """Сохранить статистику длительности автотестов"""
@@ -28,13 +28,17 @@ class HistoryTrendCollector:
             total=item['data']['total']
         )
 
-    def extract(self):
+    def extract(self, rebuild: bool = False):
         """Извлечь статистику длительности автотестов"""
-        trend = (
+        trend = list(
             HistoryTrend
             .select()
             .order_by(HistoryTrend.created.desc())  # type: ignore
         )
+
+        if rebuild:
+            trend[0].delete_instance()
+            trend = trend[1:]
 
         content = [
             {
