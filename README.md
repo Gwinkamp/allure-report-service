@@ -14,11 +14,13 @@ pip install -r requirements.prod.txt
 ([mypy](https://github.com/python/mypy) и [flake8](https://flake8.pycqa.org/en/latest/index.html)) 
 нужно установить зависимости из `requirements.dev.txt`.  
 
+Также необходима утилита [allure](https://allurereport.org/docs/gettingstarted-installation/).
+
 ## Запуск
 
 ### Конфигурация
 
-Перед стартом сервуиса нужно задать переменную окружения `DEBUG` - признак запуска в режиме отладки. Принимает значения: `true` или `false`.  
+Перед стартом сервиса нужно задать переменную окружения `DEBUG` - признак запуска в режиме отладки. Принимает значения: `true` или `false`.  
 Настройки конфигурации находятся в файлах:
 
 * `src/values.yaml`
@@ -86,3 +88,7 @@ docker run -e DEBUG=false -e DB_CONNECTION_STRING=postgresext://postgres:postgre
 
 Метод запуска UI Allure Report. Используется для в случе непредвиденного сбоя в UI. Не имеет входных параметров.  
 Возвращает строку с сообщением об успехе.
+
+## Полезные инструменты:
+
+Для публикации результатов тестов есть готовый модуль на python: [allure-results-publisher](https://github.com/Gwinkamp/allure-results-publisher).
