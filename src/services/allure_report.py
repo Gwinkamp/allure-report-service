@@ -4,6 +4,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from data import db_proxy
 from .collectors import Collectors
 
 
@@ -76,6 +77,7 @@ class AllureReport:
             f'STDERR: {process.stderr.read().decode() or "<None>" if process.stderr else "<None>"}'
         )
 
+    @db_proxy.connection_context()
     def build(self, collect_history: bool = True, rebuild: bool = False):
         self._logger.info('Выполняется сборка нового отчета...')
 

@@ -6,14 +6,15 @@ from .trends import CategoriesTrend, DurationTrend, HistoryTrend, RetryTrend
 
 
 def init_database(db_connection_string: str):
-    connection = connect(db_connection_string)
+    connection = connect(db_connection_string, autoconnect=False)
     db_proxy.initialize(connection)
 
-    db_proxy.create_tables([
-        History,
-        HistoryItem,
-        CategoriesTrend,
-        DurationTrend,
-        HistoryTrend,
-        RetryTrend
-    ])
+    with db_proxy.connection_context():
+        db_proxy.create_tables([
+            History,
+            HistoryItem,
+            CategoriesTrend,
+            DurationTrend,
+            HistoryTrend,
+            RetryTrend
+        ])
