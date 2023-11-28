@@ -33,7 +33,7 @@ class HistoryCollector:
 
     def extract(self, rebuild: bool = False):
         """Извлечь историю автотестов"""
-        histories = History.select().join(HistoryItem)
+        histories = History.select()
 
         content = dict()
         for history in histories:
