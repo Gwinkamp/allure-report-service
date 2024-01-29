@@ -58,7 +58,8 @@ class Container(containers.DeclarativeContainer):
         port=config.ui_port,
         allure=config.allure.script_path,
         build_path=config.allure.build_path,
-        results_path=config.allure.results_path
+        results_path=config.allure.results_path,
+        save_test_infos=config.features.save_test_infos
     )
 
     results_unpacker = providers.Singleton(
@@ -88,7 +89,7 @@ class Container(containers.DeclarativeContainer):
         allure_report=allure_report,
         backuper=results_backuper,
         results_path=config.allure.results_path,
-        backup_to_remote_storage=config.backup_to_remote_storage
+        backup_to_remote_storage=config.features.backup_to_remote_storage
     )
 
     run_api = providers.Callable(

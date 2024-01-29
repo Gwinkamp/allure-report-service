@@ -1,14 +1,22 @@
 from datetime import datetime, timedelta
+from typing import Dict, Any, List, Optional
 
 import peewee
-from playhouse.postgres_ext import JSONField, IntervalField
+from playhouse.postgres_ext import JSONField, IntervalField, ArrayField
 
 from .base import BaseEntity
 
 
 class History(BaseEntity):
     id: str = peewee.TextField(primary_key=True)
-    statistic = JSONField()
+    statistic: Dict[str, Any] = JSONField()
+    short_name: Optional[str] = peewee.TextField(null=True, default=None)
+    full_name: Optional[str] = peewee.TextField(null=True, default=None)
+    story: Optional[str] = peewee.TextField(null=True, default=None)
+    feature: Optional[str] = peewee.TextField(null=True, default=None)
+    epic: Optional[str] = peewee.TextField(null=True, default=None)
+    tags: List[str] = ArrayField(peewee.TextField, default=[])
+    severity: Optional[str] = peewee.TextField(null=True, default=None)
 
 
 class HistoryItem(BaseEntity):

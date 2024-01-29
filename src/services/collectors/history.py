@@ -1,11 +1,12 @@
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from linq import Query
 
 from data.entities import History, HistoryItem
+from data.models import TestInfo
 
 
 class HistoryCollector:
@@ -15,19 +16,25 @@ class HistoryCollector:
         self.source_path = base_path / 'history.json'
         self.results_path = results_path / 'history.json'
 
-    def collect(self):
+    def collect(self, test_infos: Optional[Dict[str, TestInfo]] = None):
         """Сохранить историю автотестов"""
         with open(self.source_path, 'r') as file:
             file_content = json.load(file)
 
         histories = list(History.select())
 
+        if test_infos:
+            _test_infos = test_infos
+        else:
+            _test_infos = dict()
+
         for key, history_data in file_content.items():
             history = Query(histories).first_or_none(lambda h: h.id == key)
+            test_info = _test_infos.get(key, None)
             if history:
-                self._update_current_history(history, history_data)
+                self._update_current_history(history, history_data, test_info)
             else:
-                self._create_new_history(key, history_data)
+                self._create_new_history(key, history_data, test_info)
 
     def extract(self, rebuild: bool = False):
         """Извлечь историю автотестов"""
@@ -40,11 +47,12 @@ class HistoryCollector:
         with open(self.results_path, 'w') as file:
             json.dump(content, file)
 
-    def _update_current_history(self, history: History, data: Dict[str, Any]):
+    def _update_current_history(self, history: History, data: Dict[str, Any], test_info: Optional[TestInfo] = None):
         """Обновить историю автотеста
 
         :param history: текущая история автотеста
         :param data: новые данные истории автотеста
+        :param test_info: информация о тесте
         """
         current_items = Query(history.items).select(lambda i: i.uid).to_list()  # type: ignore
         for item in data['items']:
@@ -54,18 +62,36 @@ class HistoryCollector:
             self._create_history_item_from_dict(history, item)
 
         history.statistic = data['statistic']
+
+        if test_info:
+            history.short_name = test_info.short_name
+            history.full_name = test_info.full_name
+            history.story = test_info.story
+            history.feature = test_info.feature
+            history.epic = test_info.epic
+            history.tags = test_info.tags
+            history.severity = test_info.severity
+
         history.save()
 
-    def _create_new_history(self, history_id: str, data: Dict[str, Any]):
+    def _create_new_history(self, history_id: str, data: Dict[str, Any], test_info: Optional[TestInfo] = None):
         """Создать историю автотеста
 
         :param history_id: идентификатор автотеста
         :param data: данные истории запуска
         """
-        history = History.create(
-            id=history_id,
-            statistic=data['statistic']
-        )
+        if test_info:
+            history = History.create(
+                id=history_id,
+                statistic=data['statistic'],
+                **test_info.model_dump()
+            )
+        else:
+            history = History.create(
+                id=history_id,
+                statistic=data['statistic']
+            )
+
         for item in data['items']:
             self._create_history_item_from_dict(history, item)
 

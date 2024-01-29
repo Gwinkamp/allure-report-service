@@ -17,7 +17,8 @@ class AllureReport:
             port: int,
             allure: str,
             results_path: str,
-            build_path: str
+            build_path: str,
+            save_test_infos: bool = False,
     ):
         self.host = host
         self.port = port
@@ -28,7 +29,7 @@ class AllureReport:
 
         self._is_running = False
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._collectors = Collectors(self._build_path, self._results_path)
+        self._collectors = Collectors(self._build_path, self._results_path, save_test_infos)
 
     @property
     def _open_command(self):
@@ -81,7 +82,7 @@ class AllureReport:
     def build(self, collect_history: bool = True, rebuild: bool = False):
         self._logger.info('Выполняется сборка нового отчета...')
 
-        if self._collectors.base_path.exists():
+        if self._collectors.history_base_path.exists():
             self._collectors.extract_all(rebuild)
 
         self._logger.debug(f'Выполнение команды: "{self._build_command}"')
