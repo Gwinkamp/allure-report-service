@@ -2,7 +2,6 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Any
-from uuid import UUID
 
 from linq import Query
 
@@ -24,12 +23,11 @@ class HistoryCollector:
         histories = list(History.select())
 
         for key, history_data in file_content.items():
-            history_id = UUID(key)
-            history = Query(histories).first_or_none(lambda h: h.id == history_id)
+            history = Query(histories).first_or_none(lambda h: h.id == key)
             if history:
                 self._update_current_history(history, history_data)
             else:
-                self._create_new_history(history_id, history_data)
+                self._create_new_history(key, history_data)
 
     def extract(self, rebuild: bool = False):
         """Извлечь историю автотестов"""
@@ -37,7 +35,7 @@ class HistoryCollector:
 
         content = dict()
         for history in histories:
-            content[history.id.hex] = self._create_dict_from_history(history, rebuild)
+            content[history.id] = self._create_dict_from_history(history, rebuild)
 
         with open(self.results_path, 'w') as file:
             json.dump(content, file)
@@ -58,7 +56,7 @@ class HistoryCollector:
         history.statistic = data['statistic']
         history.save()
 
-    def _create_new_history(self, history_id: UUID, data: Dict[str, Any]):
+    def _create_new_history(self, history_id: str, data: Dict[str, Any]):
         """Создать историю автотеста
 
         :param history_id: идентификатор автотеста
@@ -93,7 +91,7 @@ class HistoryCollector:
             .order_by(HistoryItem.created.desc())  # type: ignore
         )
 
-        if rebuild:
+        if rebuild and len(history_items) > 0:
             history_items[0].delete_instance()
             history_items = history_items[1:]
 

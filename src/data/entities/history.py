@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from uuid import UUID
 
 import peewee
 from playhouse.postgres_ext import JSONField, IntervalField
@@ -8,7 +7,7 @@ from .base import BaseEntity
 
 
 class History(BaseEntity):
-    id: UUID = peewee.UUIDField(primary_key=True)
+    id: str = peewee.TextField(primary_key=True)
     statistic = JSONField()
 
 
