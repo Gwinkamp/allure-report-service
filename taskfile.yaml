@@ -1,0 +1,58 @@
+version: '3'
+
+vars:
+  VENV_DIR: '.venv'
+  VENV_SUBDIR: '{{if eq OS "windows"}}Scripts{{else}}bin{{end}}'
+  DOCKER_IMAGE_URL: gwinkamp/allure-report-service
+
+tasks:
+  python-file:
+    internal: true
+    cmd: ./{{.VENV_DIR}}/{{.VENV_SUBDIR}}/python {{.FILE}}
+  python-module:
+    internal: true
+    cmd: ./{{.VENV_DIR}}/{{.VENV_SUBDIR}}/python -m {{.MODULE}} {{.ARGS}}
+  pip:
+    internal: true
+    cmd: ./{{.VENV_DIR}}/{{.VENV_SUBDIR}}/pip {{.ARGS}}
+
+  install-dev:
+    desc: установка dev зависимостей
+    cmds:
+      - task: pip
+        vars:
+          ARGS: install -r requirements.dev.txt
+  install-prod:
+    desc: установка prod зависимостей
+    cmds:
+      - task: pip
+        vars:
+          ARGS: install -r requirements.prod.txt
+  run:
+    desc: запуск приложения
+    cmds:
+      - task: python-file
+        vars:
+          FILE: ./src/main.py
+  check:
+    desc: статическая проверка кода
+    cmds:
+      - task: python-module
+        vars:
+          MODULE: mypy
+      - task: python-module
+        vars:
+          MODULE: flake8
+      - task: python-module
+        vars:
+          MODULE: pyright
+  build-image:
+    desc: сборка docker образа
+    cmd: docker build -t allure-report-service .
+  publish-image:
+    desc: публикация docker образа в dockerhub
+    cmds:
+      - docker tag allure-report-service {{.DOCKER_IMAGE_URL}}:{{.TAG}}
+      - docker push {{.DOCKER_IMAGE_URL}}:{{.TAG}}
+    requires:
+      vars: [ TAG ]

@@ -1,5 +1,4 @@
-# type: ignore
-# игнорировать ошибку reportAssignmentType в pyright
+# pyright: reportAssignmentType=false
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 
@@ -17,7 +16,7 @@ class History(BaseEntity):
     story: Optional[str] = peewee.TextField(null=True, default=None)
     feature: Optional[str] = peewee.TextField(null=True, default=None)
     epic: Optional[str] = peewee.TextField(null=True, default=None)
-    tags: List[str] = ArrayField(peewee.TextField, default=[])
+    tags: List[str] = ArrayField(peewee.TextField, default=[])  # pyright: ignore[reportArgumentType]
     severity: Optional[str] = peewee.TextField(null=True, default=None)
 
 

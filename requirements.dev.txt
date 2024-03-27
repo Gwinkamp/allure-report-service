@@ -15,6 +15,7 @@ mdurl==0.1.2
 minio==7.1.17
 mypy==1.6.1
 mypy-extensions==1.0.0
+nodeenv==1.8.0
 peewee==3.17.0
 psycopg2-binary==2.9.9
 pycodestyle==2.11.1
@@ -22,6 +23,7 @@ pydantic==2.4.2
 pydantic_core==2.10.1
 pyflakes==3.1.0
 Pygments==2.16.1
+pyright==1.1.355
 python-dotenv==1.0.0
 python-linq==2.0.4
 python-multipart==0.0.6

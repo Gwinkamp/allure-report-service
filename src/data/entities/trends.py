@@ -1,5 +1,4 @@
-# type: ignore
-# игнорировать ошибку reportAssignmentType в pyright
+# pyright: reportAssignmentType=false
 from datetime import datetime, timedelta
 from uuid import uuid4, UUID
 
