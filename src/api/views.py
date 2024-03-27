@@ -27,7 +27,7 @@ async def upload_results(
         allure_report: AllureReport = Depends(Provide[Container.allure_report]),
         unpacker: ResultsUnpacker = Depends(Provide[Container.results_unpacker]),
         backuper: ResultsBackuper = Depends(Provide[Container.results_backuper]),
-        backup_to_remote_storage: bool = Depends(Provide[Container.config.backup_to_remote_storage])
+        backup_to_remote_storage: bool = Depends(Provide[Container.config.features.backup_to_remote_storage])
 ):
     if not rebuild_existing_report:
         allure_report.clear_results()
