@@ -1,0 +1,11 @@
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+
+include = ["src"]
+exclude = [
+    "**/__pycache__",
+]
+
+pythonVersion = "3.10"
+pythonPlatform = "Linux"

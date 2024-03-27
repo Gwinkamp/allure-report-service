@@ -1,3 +1,5 @@
+# type: ignore
+# игнорировать ошибку reportAssignmentType в pyright
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 
