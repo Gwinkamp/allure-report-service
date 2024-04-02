@@ -48,7 +48,7 @@ class Container(containers.DeclarativeContainer):
         title='Allure Receiver',
         summary='Приёмник результатов тестирования',
         description='Сервис приёма результатов тестирования извне для последующей их передачи в AllureReport',
-        version='0.0.1',
+        version='1.0.3',
         docs_url='/swagger'
     )
 

@@ -1,9 +1,9 @@
 debug: true
-api_host: 127.0.0.1
-api_port: 1050
-ui_host: 127.0.0.1
-ui_port: 1051
-db_connection_string: postgresext://postgres:postgres@localhost:5432/allure_history
+api_host: ${API_HOST:127.0.0.1}
+api_port: ${API_PORT:1050}
+ui_host: ${UI_HOST:127.0.0.1}
+ui_port: ${UI_PORT:1051}
+db_connection_string: ${DB_CONNECTION_STRING:postgresext://postgres:postgres@localhost:5432/allure_history}
 features:
-  backup_to_remote_storage: false
-  save_test_infos: true
+  backup_to_remote_storage: ${FEATURES__BACKUP_TO_REMOTE_STORAGE:false}
+  save_test_infos: ${FEATURES__SAVE_TEST_INFOS:true}

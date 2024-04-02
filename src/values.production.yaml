@@ -1,9 +1,9 @@
 debug: false
-api_host: 0.0.0.0
-api_port: 8000
-ui_host: 0.0.0.0
-ui_port: 8080
+api_host: ${API_HOST:0.0.0.0}
+api_port: ${API_PORT:8000}
+ui_host: ${UI_HOST:0.0.0.0}
+ui_port: ${UI_PORT:8080}
 db_connection_string: ${DB_CONNECTION_STRING}
 features:
-  backup_to_remote_storage: true
-  save_test_infos: true
+  backup_to_remote_storage: ${FEATURES__BACKUP_TO_REMOTE_STORAGE:true}
+  save_test_infos: ${FEATURES__SAVE_TEST_INFOS:true}

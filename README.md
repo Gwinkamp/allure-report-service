@@ -27,6 +27,8 @@ pip install -r requirements.prod.txt
 * `src/values.debug.yaml` - при условии `DEBUG=true`
 * `src/values.production.yaml` - при условии `DEBUG=false`
 
+Также конфигурацию можно настроить с помощью переменных окружения (название переменных см. в yaml)
+
 ### Доступ к БД
 
 Данный сервис записывает историю результатов тестов Allure Report в БД для возможности удобной очистки истории по дате. 
